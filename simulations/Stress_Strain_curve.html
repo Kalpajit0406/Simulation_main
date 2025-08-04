@@ -1,4 +1,28 @@
 <!DOCTYPE html>
+<script>
+    // Update slider and input together
+    function linkSliderInput(sliderId, inputId, min, max) {
+        const slider = document.getElementById(sliderId);
+        const input = document.getElementById(inputId);
+        slider.addEventListener('input', () => {
+            input.value = slider.value;
+        });
+        input.addEventListener('input', () => {
+            let v = parseFloat(input.value);
+            if (isNaN(v)) v = slider.min;
+            v = Math.max(min, Math.min(max, v));
+            slider.value = v;
+            input.value = v;
+            slider.dispatchEvent(new Event('input')); // trigger update
+        });
+    }
+    window.addEventListener('DOMContentLoaded', () => {
+        linkSliderInput('youngsModulus', 'youngsModulusInput', 10, 300);
+        linkSliderInput('yieldStrength', 'yieldStrengthInput', 100, 1000);
+        linkSliderInput('ultimateStrength', 'ultimateStrengthInput', 200, 1500);
+        linkSliderInput('fractureStrain', 'fractureStrainInput', 5, 50);
+    });
+</script>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,6 +48,11 @@
         input[type="range"] {
             width: 200px;
         }
+        input[type="number"] {
+            width: 60px;
+            margin-left: 8px;
+            margin-right: 8px;
+        }
         #canvas-container {
             background: #fff;
             padding: 20px;
@@ -45,21 +74,25 @@
         <div>
             <label for="youngsModulus">Young's Modulus (GPa):</label>
             <input type="range" id="youngsModulus" min="10" max="300" value="200">
+            <input type="number" id="youngsModulusInput" min="10" max="300" value="200">
             <span id="youngsModulusVal">200</span>
         </div>
         <div>
             <label for="yieldStrength">Yield Strength (MPa):</label>
             <input type="range" id="yieldStrength" min="100" max="1000" value="400">
+            <input type="number" id="yieldStrengthInput" min="100" max="1000" value="400">
             <span id="yieldStrengthVal">400</span>
         </div>
         <div>
             <label for="ultimateStrength">Ultimate Strength (MPa):</label>
             <input type="range" id="ultimateStrength" min="200" max="1500" value="600">
+            <input type="number" id="ultimateStrengthInput" min="200" max="1500" value="600">
             <span id="ultimateStrengthVal">600</span>
         </div>
         <div>
             <label for="fractureStrain">Fracture Strain (%):</label>
             <input type="range" id="fractureStrain" min="5" max="50" value="20">
+            <input type="number" id="fractureStrainInput" min="5" max="50" value="20">
             <span id="fractureStrainVal">20</span>
         </div>
     </div>
@@ -72,6 +105,10 @@
         const yieldStrength = document.getElementById('yieldStrength');
         const ultimateStrength = document.getElementById('ultimateStrength');
         const fractureStrain = document.getElementById('fractureStrain');
+        const youngsModulusInput = document.getElementById('youngsModulusInput');
+        const yieldStrengthInput = document.getElementById('yieldStrengthInput');
+        const ultimateStrengthInput = document.getElementById('ultimateStrengthInput');
+        const fractureStrainInput = document.getElementById('fractureStrainInput');
         const canvas = document.getElementById('curveCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -86,6 +123,11 @@
             yieldStrengthVal.textContent = yieldStrength.value;
             ultimateStrengthVal.textContent = ultimateStrength.value;
             fractureStrainVal.textContent = fractureStrain.value;
+            // Keep number inputs in sync
+            youngsModulusInput.value = youngsModulus.value;
+            yieldStrengthInput.value = yieldStrength.value;
+            ultimateStrengthInput.value = ultimateStrength.value;
+            fractureStrainInput.value = fractureStrain.value;
         }
 
         function drawCurve() {
@@ -207,11 +249,29 @@
             drawCurve();
         }
 
-        // Event listeners
+        // Event listeners for sliders
         youngsModulus.addEventListener('input', update);
         yieldStrength.addEventListener('input', update);
         ultimateStrength.addEventListener('input', update);
         fractureStrain.addEventListener('input', update);
+
+        // Event listeners for number inputs
+        youngsModulusInput.addEventListener('input', function() {
+            youngsModulus.value = this.value;
+            update();
+        });
+        yieldStrengthInput.addEventListener('input', function() {
+            yieldStrength.value = this.value;
+            update();
+        });
+        ultimateStrengthInput.addEventListener('input', function() {
+            ultimateStrength.value = this.value;
+            update();
+        });
+        fractureStrainInput.addEventListener('input', function() {
+            fractureStrain.value = this.value;
+            update();
+        });
 
         // Initial draw
         update();
