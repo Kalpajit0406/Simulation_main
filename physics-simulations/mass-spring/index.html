@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mass-Spring System Simulation</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .simulation-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            background-color: white;
+            border-radius: 8px;
+            display: block;
+            margin: 20px 0;
+            border: 1px solid #ddd;
+        }
+        .controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: inline-block;
+            width: 150px;
+            font-weight: 500;
+        }
+        input[type="range"], input[type="number"] {
+            width: 200px;
+            vertical-align: middle;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        .data-table th {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mass-Spring System Simulation</h1>
+    <div class="simulation-container">
+        <canvas id="springCanvas" width="400" height="300"></canvas>
+        <div class="controls">
+            <div class="control-group">
+                <label for="springMass">Mass (kg):</label>
+                <input type="range" id="springMass" min="0.1" max="5" step="0.1" value="1">
+                <input type="number" id="springMassNum" min="0.1" max="5" step="0.1" value="1" style="width:60px; margin-left:8px;">
+            </div>
+            <div class="control-group">
+                <label for="springConstant">Spring Constant (N/m):</label>
+                <input type="range" id="springConstant" min="1" max="50" step="1" value="10">
+                <input type="number" id="springConstantNum" min="1" max="50" step="1" value="10" style="width:60px; margin-left:8px;">
+            </div>
+            <div class="control-group">
+                <label for="springDamping">Damping:</label>
+                <input type="range" id="springDamping" min="0" max="0.5" step="0.01" value="0.05">
+                <input type="number" id="springDampingNum" min="0" max="0.5" step="0.01" value="0.05" style="width:60px; margin-left:8px;">
+            </div>
+            <div class="control-group">
+                <label for="springAmplitude">Amplitude (m):</label>
+                <input type="range" id="springAmplitude" min="0.1" max="2" step="0.1" value="1">
+                <input type="number" id="springAmplitudeNum" min="0.1" max="2" step="0.1" value="1" style="width:60px; margin-left:8px;">
+            </div>
+            <button id="springStartBtn">Start</button>
+            <button id="springResetBtn">Reset</button>
+        </div>
+        <table class="data-table">
+            <tr>
+                <th>Time (s)</th>
+                <th>Position (m)</th>
+                <th>Velocity (m/s)</th>
+                <th>Acceleration (m/s²)</th>
+            </tr>
+            <tr>
+                <td id="springTime">0.00</td>
+                <td id="springPosition">0.00</td>
+                <td id="springVelocity">0.00</td>
+                <td id="springAcceleration">0.00</td>
+            </tr>
+        </table>
+    </div>
+    <script>
+        const springCanvas = document.getElementById('springCanvas');
+        const springCtx = springCanvas.getContext('2d');
+        
+        let springSystem = {
+            mass: 1.0,
+            k: 10,
+            damping: 0.05,
+            amplitude: 1.0,
+            position: 0,
+            velocity: 0,
+            acceleration: 0,
+            time: 0,
+            isRunning: false,
+            animationId: null,
+            reset: function() {
+                this.position = this.amplitude;
+                this.velocity = 0;
+                this.time = 0;
+            }
+        };
+        
+        springSystem.reset();
+        
+        document.getElementById('springMass').addEventListener('input', function() {
+            springSystem.mass = parseFloat(this.value);
+            document.getElementById('springMassNum').value = springSystem.mass.toFixed(1);
+        });
+        
+        document.getElementById('springConstant').addEventListener('input', function() {
+            springSystem.k = parseFloat(this.value);
+            document.getElementById('springConstantNum').value = springSystem.k;
+        });
+        
+        document.getElementById('springDamping').addEventListener('input', function() {
+            springSystem.damping = parseFloat(this.value);
+            document.getElementById('springDampingNum').value = springSystem.damping.toFixed(2);
+        });
+        
+        document.getElementById('springAmplitude').addEventListener('input', function() {
+            springSystem.amplitude = parseFloat(this.value);
+            document.getElementById('springAmplitudeNum').value = springSystem.amplitude.toFixed(1);
+            if (!springSystem.isRunning) {
+                springSystem.position = springSystem.amplitude;
+                drawSpringSystem();
+            }
+        });
+        
+        document.getElementById('springStartBtn').addEventListener('click', function() {
+            if (!springSystem.isRunning) {
+                springSystem.isRunning = true;
+                animateSpringSystem();
+            }
+        });
+        
+        document.getElementById('springResetBtn').addEventListener('click', function() {
+            springSystem.isRunning = false;
+            if (springSystem.animationId) {
+                cancelAnimationFrame(springSystem.animationId);
+                springSystem.animationId = null;
+            }
+            springSystem.reset();
+            drawSpringSystem();
+        });
+        
+        function animateSpringSystem() {
+            if (!springSystem.isRunning) return;
+            
+            const dt = 0.016; // ~60fps
+            
+            springSystem.acceleration = (-springSystem.k * springSystem.position - springSystem.damping * springSystem.velocity) / springSystem.mass;
+            springSystem.velocity += springSystem.acceleration * dt;
+            springSystem.position += springSystem.velocity * dt;
+            springSystem.time += dt;
+            
+            drawSpringSystem();
+            updateSpringData();
+            
+            springSystem.animationId = requestAnimationFrame(animateSpringSystem);
+        }
+        
+        function drawSpringSystem() {
+            springCtx.clearRect(0, 0, springCanvas.width, springCanvas.height);
+            springCtx.beginPath();
+            springCtx.moveTo(0, 50);
+            springCtx.lineTo(springCanvas.width, 50);
+            springCtx.strokeStyle = '#333';
+            springCtx.lineWidth = 2;
+            springCtx.stroke();
+            
+            const scale = 100;
+            const visualPosition = springCanvas.width / 2 + springSystem.position * scale;
+            const springBottom = 150;
+            
+            springCtx.fillStyle = '#e74c3c';
+            springCtx.fillRect(visualPosition - 30, springBottom, 60, 60);
+            springCtx.strokeStyle = '#c0392b';
+            springCtx.strokeRect(visualPosition - 30, springBottom, 60, 60);
+        }
+        
+        function updateSpringData() {
+            document.getElementById('springTime').textContent = springSystem.time.toFixed(2);
+            document.getElementById('springPosition').textContent = springSystem.position.toFixed(2);
+            document.getElementById('springVelocity').textContent = springSystem.velocity.toFixed(2);
+            document.getElementById('springAcceleration').textContent = springSystem.acceleration.toFixed(2);
+        }
+        
+        drawSpringSystem();
+    </script>
+</body>
+</html>
