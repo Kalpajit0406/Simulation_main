@@ -4,231 +4,609 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mass-Spring System Simulation</title>
-    <link rel="stylesheet" href="styles.css">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
             background-color: #f5f7fa;
             color: #2c3e50;
+            overflow: hidden;
         }
-        h1 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 5px;
-        }
-        .simulation-container {
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            width: 100vw;
+            height: 100vh;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            align-items: center;
         }
-        canvas {
-            background-color: white;
-            border-radius: 8px;
-            display: block;
-            margin: 20px 0;
-            border: 1px solid #ddd;
+        h1 {
+            text-align: left;
+            color: #2c3e50;
+            margin: 18px 0 0 40px;
+            font-size: 2.5em;
         }
-        .controls {
-            margin: 20px 0;
-            padding: 15px;
-            background-color: #f8f9fa;
-            border-radius: 8px;
+        .subtitle {
+            text-align: left;
+            color: #7f8c8d;
+            margin: 0 0 18px 40px;
+            font-size: 1.3em;
+        }
+        .main-flex {
+            flex: 1;
+            display: flex;
+            gap: 20px;
+            padding: 0 40px;
+        }
+        .simulation-panel {
+            flex: 2;
+            background: white;
+            border-radius: 18px;
+            padding: 20px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .controls-panel {
+            flex: 1;
+            background: white;
+            border-radius: 18px;
+            padding: 24px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+        }
+        #simulationCanvas {
+            width: 100%;
+            height: 500px;
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        #graphCanvas {
+            width: 100%;
+            height: 200px;
+            background: #fff;
+            border-radius: 12px;
         }
         .control-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         label {
-            display: inline-block;
-            width: 150px;
+            min-width: 120px;
             font-weight: 500;
         }
-        input[type="range"], input[type="number"] {
-            width: 200px;
-            vertical-align: middle;
+        input[type="range"] {
+            flex: 1;
         }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-            transition: background-color 0.3s;
+        input[type="number"] {
+            width: 80px;
+            padding: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
-        button:hover {
-            background-color: #2980b9;
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
+        .button-group {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
-        .data-table th, .data-table td {
-            border: 1px solid #ddd;
-            padding: 8px;
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #3498db;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+        .data-display {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .data-item {
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
             text-align: center;
         }
-        .data-table th {
-            background-color: #f8f9fa;
+        .data-label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .data-value {
+            font-size: 1.2em;
+            font-weight: 500;
+            color: #2c3e50;
         }
     </style>
 </head>
 <body>
-    <h1>Mass-Spring System Simulation</h1>
-    <div class="simulation-container">
-        <canvas id="springCanvas" width="400" height="300"></canvas>
-        <div class="controls">
-            <div class="control-group">
-                <label for="springMass">Mass (kg):</label>
-                <input type="range" id="springMass" min="0.1" max="5" step="0.1" value="1">
-                <input type="number" id="springMassNum" min="0.1" max="5" step="0.1" value="1" style="width:60px; margin-left:8px;">
-            </div>
-            <div class="control-group">
-                <label for="springConstant">Spring Constant (N/m):</label>
-                <input type="range" id="springConstant" min="1" max="50" step="1" value="10">
-                <input type="number" id="springConstantNum" min="1" max="50" step="1" value="10" style="width:60px; margin-left:8px;">
-            </div>
-            <div class="control-group">
-                <label for="springDamping">Damping:</label>
-                <input type="range" id="springDamping" min="0" max="0.5" step="0.01" value="0.05">
-                <input type="number" id="springDampingNum" min="0" max="0.5" step="0.01" value="0.05" style="width:60px; margin-left:8px;">
-            </div>
-            <div class="control-group">
-                <label for="springAmplitude">Amplitude (m):</label>
-                <input type="range" id="springAmplitude" min="0.1" max="2" step="0.1" value="1">
-                <input type="number" id="springAmplitudeNum" min="0.1" max="2" step="0.1" value="1" style="width:60px; margin-left:8px;">
-            </div>
-            <button id="springStartBtn">Start</button>
-            <button id="springResetBtn">Reset</button>
+    <h1>Mass-Spring System</h1>
+    <p class="subtitle">Interactive simulation of simple harmonic motion</p>
+    
+    <div class="main-flex">
+        <div class="simulation-panel">
+            <canvas id="simulationCanvas"></canvas>
+            <canvas id="graphCanvas"></canvas>
         </div>
-        <table class="data-table">
-            <tr>
-                <th>Time (s)</th>
-                <th>Position (m)</th>
-                <th>Velocity (m/s)</th>
-                <th>Acceleration (m/s²)</th>
-            </tr>
-            <tr>
-                <td id="springTime">0.00</td>
-                <td id="springPosition">0.00</td>
-                <td id="springVelocity">0.00</td>
-                <td id="springAcceleration">0.00</td>
-            </tr>
-        </table>
+        
+        <div class="controls-panel">
+            <div class="control-group">
+                <label for="mass">Mass (kg)</label>
+                <input type="range" id="mass" min="0.1" max="2" step="0.1" value="1">
+                <input type="number" id="massNum" min="0.1" max="2" step="0.1" value="1">
+            </div>
+            
+            <div class="control-group">
+                <label for="springConstant">Spring Constant (N/m)</label>
+                <input type="range" id="springConstant" min="1" max="50" step="1" value="20">
+                <input type="number" id="springConstantNum" min="1" max="50" step="1" value="20">
+            </div>
+            
+            <div class="control-group">
+                <label for="damping">Damping</label>
+                <input type="range" id="damping" min="0" max="1" step="0.05" value="0">
+                <input type="number" id="dampingNum" min="0" max="1" step="0.05" value="0">
+            </div>
+            
+            <div class="control-group">
+                <label for="initialDisplacement">Initial Displacement (m)</label>
+                <input type="range" id="initialDisplacement" min="-1" max="1" step="0.1" value="0.5">
+                <input type="number" id="initialDisplacementNum" min="-1" max="1" step="0.1" value="0.5">
+            </div>
+            
+            <div class="button-group">
+                <button id="startBtn">Start</button>
+                <button id="pauseBtn" disabled>Pause</button>
+                <button id="resetBtn">Reset</button>
+            </div>
+            
+            <div class="data-display">
+                <div class="data-grid">
+                    <div class="data-item">
+                        <div class="data-label">Position (m)</div>
+                        <div class="data-value" id="positionValue">0.00</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Velocity (m/s)</div>
+                        <div class="data-value" id="velocityValue">0.00</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Energy (J)</div>
+                        <div class="data-value" id="energyValue">0.00</div>
+                    </div>
+                    <div class="data-item">
+                        <div class="data-label">Period (s)</div>
+                        <div class="data-value" id="periodValue">0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
     <script>
-        const springCanvas = document.getElementById('springCanvas');
-        const springCtx = springCanvas.getContext('2d');
-        
-        let springSystem = {
-            mass: 1.0,
-            k: 10,
-            damping: 0.05,
-            amplitude: 1.0,
-            position: 0,
-            velocity: 0,
-            acceleration: 0,
-            time: 0,
-            isRunning: false,
-            animationId: null,
-            reset: function() {
-                this.position = this.amplitude;
-                this.velocity = 0;
-                this.time = 0;
-            }
-        };
-        
-        springSystem.reset();
-        
-        document.getElementById('springMass').addEventListener('input', function() {
-            springSystem.mass = parseFloat(this.value);
-            document.getElementById('springMassNum').value = springSystem.mass.toFixed(1);
-        });
-        
-        document.getElementById('springConstant').addEventListener('input', function() {
-            springSystem.k = parseFloat(this.value);
-            document.getElementById('springConstantNum').value = springSystem.k;
-        });
-        
-        document.getElementById('springDamping').addEventListener('input', function() {
-            springSystem.damping = parseFloat(this.value);
-            document.getElementById('springDampingNum').value = springSystem.damping.toFixed(2);
-        });
-        
-        document.getElementById('springAmplitude').addEventListener('input', function() {
-            springSystem.amplitude = parseFloat(this.value);
-            document.getElementById('springAmplitudeNum').value = springSystem.amplitude.toFixed(1);
-            if (!springSystem.isRunning) {
-                springSystem.position = springSystem.amplitude;
-                drawSpringSystem();
-            }
-        });
-        
-        document.getElementById('springStartBtn').addEventListener('click', function() {
-            if (!springSystem.isRunning) {
-                springSystem.isRunning = true;
-                animateSpringSystem();
-            }
-        });
-        
-        document.getElementById('springResetBtn').addEventListener('click', function() {
-            springSystem.isRunning = false;
-            if (springSystem.animationId) {
-                cancelAnimationFrame(springSystem.animationId);
-                springSystem.animationId = null;
-            }
-            springSystem.reset();
-            drawSpringSystem();
-        });
-        
-        function animateSpringSystem() {
-            if (!springSystem.isRunning) return;
-            
-            const dt = 0.016; // ~60fps
-            
-            springSystem.acceleration = (-springSystem.k * springSystem.position - springSystem.damping * springSystem.velocity) / springSystem.mass;
-            springSystem.velocity += springSystem.acceleration * dt;
-            springSystem.position += springSystem.velocity * dt;
-            springSystem.time += dt;
-            
-            drawSpringSystem();
-            updateSpringData();
-            
-            springSystem.animationId = requestAnimationFrame(animateSpringSystem);
+    const simCanvas = document.getElementById('simulationCanvas');
+    const simCtx = simCanvas.getContext('2d');
+    const graphCanvas = document.getElementById('graphCanvas');
+    const graphCtx = graphCanvas.getContext('2d');
+
+    // Set actual canvas sizes (ensure correct size on resize)
+    function resizeCanvases() {
+        simCanvas.width = simCanvas.clientWidth;
+        simCanvas.height = simCanvas.clientHeight;
+        graphCanvas.width = graphCanvas.clientWidth;
+        graphCanvas.height = graphCanvas.clientHeight;
+        // Update equilibrium and redraw
+        system.equilibrium = simCanvas.width / 2;
+        drawSystem();
+        drawGraph();
+    }
+    window.addEventListener('resize', resizeCanvases);
+
+    // Spring-mass system parameters
+    let system = {
+        mass: 1.0,
+        k: 20.0,
+        damping: 0.0,
+        x: 0.5,
+        v: 0,
+        equilibrium: simCanvas.width / 2,
+        wallX: 100,
+        isRunning: false,
+        time: 0,
+        history: [],
+        scale: 200, // pixels per meter
+    };
+
+    function drawSpring(x) {
+        // Draw a wavy animated spring from wallX to x
+        const segments = 24;
+        const amplitude = 16;
+        const springLength = x - system.wallX;
+        const dx = springLength / segments;
+        const now = performance.now() * 0.002; // for animation
+
+        simCtx.save();
+        simCtx.beginPath();
+        simCtx.moveTo(system.wallX, simCanvas.height/2);
+
+        for (let i = 1; i < segments; i++) {
+            // Animate the phase for a lively spring
+            const phase = now + i * 0.25;
+            const yOffset = amplitude * Math.sin(i * Math.PI + phase);
+            const xPos = system.wallX + i * dx;
+            simCtx.lineTo(xPos, simCanvas.height/2 + yOffset);
         }
-        
-        function drawSpringSystem() {
-            springCtx.clearRect(0, 0, springCanvas.width, springCanvas.height);
-            springCtx.beginPath();
-            springCtx.moveTo(0, 50);
-            springCtx.lineTo(springCanvas.width, 50);
-            springCtx.strokeStyle = '#333';
-            springCtx.lineWidth = 2;
-            springCtx.stroke();
-            
-            const scale = 100;
-            const visualPosition = springCanvas.width / 2 + springSystem.position * scale;
-            const springBottom = 150;
-            
-            springCtx.fillStyle = '#e74c3c';
-            springCtx.fillRect(visualPosition - 30, springBottom, 60, 60);
-            springCtx.strokeStyle = '#c0392b';
-            springCtx.strokeRect(visualPosition - 30, springBottom, 60, 60);
+
+        simCtx.lineTo(x, simCanvas.height/2);
+        simCtx.strokeStyle = '#3498db';
+        simCtx.lineWidth = 4;
+        simCtx.shadowColor = "#2980b9";
+        simCtx.shadowBlur = 4;
+        simCtx.stroke();
+        simCtx.shadowBlur = 0;
+        simCtx.restore();
+
+        // Outline for spring
+        simCtx.save();
+        simCtx.beginPath();
+        simCtx.moveTo(system.wallX, simCanvas.height/2);
+        for (let i = 1; i < segments; i++) {
+            const phase = now + i * 0.25;
+            const yOffset = amplitude * Math.sin(i * Math.PI + phase);
+            const xPos = system.wallX + i * dx;
+            simCtx.lineTo(xPos, simCanvas.height/2 + yOffset);
         }
-        
-        function updateSpringData() {
-            document.getElementById('springTime').textContent = springSystem.time.toFixed(2);
-            document.getElementById('springPosition').textContent = springSystem.position.toFixed(2);
-            document.getElementById('springVelocity').textContent = springSystem.velocity.toFixed(2);
-            document.getElementById('springAcceleration').textContent = springSystem.acceleration.toFixed(2);
+        simCtx.lineTo(x, simCanvas.height/2);
+        simCtx.strokeStyle = '#1a232b';
+        simCtx.lineWidth = 1.5;
+        simCtx.shadowBlur = 0;
+        simCtx.stroke();
+        simCtx.restore();
+    }
+
+    function drawMass(x) {
+        simCtx.save();
+        const size = 40;
+        // Draw box
+        simCtx.fillStyle = '#e74c3c';
+        simCtx.strokeStyle = '#c0392b';
+        simCtx.lineWidth = 3;
+        simCtx.beginPath();
+        simCtx.rect(x - size/2, simCanvas.height/2 - size/2, size, size);
+        simCtx.fill();
+        simCtx.shadowColor = "#c0392b";
+        simCtx.shadowBlur = 8;
+        simCtx.stroke();
+        simCtx.shadowBlur = 0;
+
+        // Outline for mass
+        simCtx.beginPath();
+        simCtx.rect(x - size/2, simCanvas.height/2 - size/2, size, size);
+        simCtx.strokeStyle = '#222';
+        simCtx.lineWidth = 1.5;
+        simCtx.stroke();
+
+        // Draw displacement line
+        simCtx.beginPath();
+        simCtx.moveTo(system.equilibrium, simCanvas.height/2 + 50);
+        simCtx.lineTo(system.equilibrium, simCanvas.height/2 + 70);
+        simCtx.strokeStyle = '#95a5a6';
+        simCtx.lineWidth = 2;
+        simCtx.stroke();
+
+        // Draw current position line
+        simCtx.beginPath();
+        simCtx.moveTo(x, simCanvas.height/2 + 50);
+        simCtx.lineTo(x, simCanvas.height/2 + 70);
+        simCtx.strokeStyle = '#e74c3c';
+        simCtx.lineWidth = 2;
+        simCtx.stroke();
+
+        // Draw displacement arrow and value
+        const displacement = ((x - system.equilibrium) / system.scale).toFixed(2);
+        simCtx.beginPath();
+        simCtx.moveTo(system.equilibrium, simCanvas.height/2 + 60);
+        simCtx.lineTo(x, simCanvas.height/2 + 60);
+        simCtx.strokeStyle = '#2c3e50';
+        simCtx.lineWidth = 2;
+        simCtx.stroke();
+
+        // Add arrowhead
+        const arrowSize = 8;
+        const direction = x > system.equilibrium ? 1 : -1;
+        simCtx.beginPath();
+        simCtx.moveTo(x, simCanvas.height/2 + 60);
+        simCtx.lineTo(x - direction * arrowSize, simCanvas.height/2 + 60 - arrowSize);
+        simCtx.lineTo(x - direction * arrowSize, simCanvas.height/2 + 60 + arrowSize);
+        simCtx.closePath();
+        simCtx.fillStyle = '#2c3e50';
+        simCtx.fill();
+
+        simCtx.font = "bold 16px Segoe UI";
+        simCtx.fillStyle = "#2c3e50";
+        simCtx.fillText(`${displacement} m`, (system.equilibrium + x)/2 - 18, simCanvas.height/2 + 55);
+
+        simCtx.restore();
+    }
+
+    function drawWall() {
+        simCtx.save();
+        simCtx.fillStyle = '#34495e';
+        simCtx.fillRect(system.wallX - 20, simCanvas.height/2 - 100, 20, 200);
+        // Wall outline
+        simCtx.strokeStyle = '#222';
+        simCtx.lineWidth = 2;
+        simCtx.strokeRect(system.wallX - 20, simCanvas.height/2 - 100, 20, 200);
+        simCtx.restore();
+    }
+
+    function updateSystem(dt) {
+        const F = -system.k * system.x - system.damping * system.v; // F = -kx - cv
+        const a = F / system.mass;
+        system.v += a * dt;
+        system.x += system.v * dt;
+        system.time += dt;
+
+        // Update displayed values
+        document.getElementById('positionValue').textContent = system.x.toFixed(3);
+        document.getElementById('velocityValue').textContent = system.v.toFixed(3);
+
+        const kineticEnergy = 0.5 * system.mass * system.v * system.v;
+        const potentialEnergy = 0.5 * system.k * system.x * system.x;
+        const totalEnergy = kineticEnergy + potentialEnergy;
+        document.getElementById('energyValue').textContent = totalEnergy.toFixed(3);
+
+        const period = 2 * Math.PI * Math.sqrt(system.mass / system.k);
+        document.getElementById('periodValue').textContent = period.toFixed(3);
+
+        // Store history for graph
+        system.history.push({time: system.time, position: system.x, velocity: system.v});
+        if (system.history.length > 1000) system.history.shift();
+    }
+
+    function drawSystem() {
+        simCtx.clearRect(0, 0, simCanvas.width, simCanvas.height);
+
+        const pixelX = system.equilibrium + system.x * system.scale;
+        drawWall();
+        drawSpring(pixelX);
+        drawMass(pixelX);
+    }
+
+    function drawGraph() {
+        graphCtx.clearRect(0, 0, graphCanvas.width, graphCanvas.height);
+        if (system.history.length < 2) return;
+
+        // --- Draw axes with ticks and grid ---
+        const marginLeft = 50, marginRight = 20, marginTop = 20, marginBottom = 20;
+        const graphW = graphCanvas.width - marginLeft - marginRight;
+        const graphH = graphCanvas.height - marginTop - marginBottom;
+        const timeWindow = 5; // seconds
+        const xScale = graphW / timeWindow;
+        const yScale = 80; // pixels per meter
+
+        // Find the latest time to align the window to the right
+        const latestTime = system.history[system.history.length - 1].time;
+        const tMin = Math.max(0, latestTime - timeWindow);
+
+        // Draw grid lines
+        graphCtx.save();
+        graphCtx.strokeStyle = "#e0e0e0";
+        graphCtx.lineWidth = 1;
+        graphCtx.setLineDash([4, 6]);
+        // Vertical grid (time)
+        for (let t = Math.ceil(tMin); t <= tMin + timeWindow; t++) {
+            const x = marginLeft + (t - tMin) * xScale;
+            graphCtx.beginPath();
+            graphCtx.moveTo(x, marginTop);
+            graphCtx.lineTo(x, graphCanvas.height - marginBottom);
+            graphCtx.stroke();
         }
-        
-        drawSpringSystem();
-    </script>
+        // Horizontal grid (y)
+        for (let y = -2; y <= 2; y += 0.5) {
+            const yPx = graphCanvas.height/2 - y * yScale;
+            graphCtx.beginPath();
+            graphCtx.moveTo(marginLeft, yPx);
+            graphCtx.lineTo(graphCanvas.width - marginRight, yPx);
+            graphCtx.stroke();
+        }
+        graphCtx.setLineDash([]);
+        graphCtx.restore();
+
+        // Draw axes with ticks
+        graphCtx.save();
+        graphCtx.strokeStyle = '#444';
+        graphCtx.lineWidth = 2;
+        // X axis
+        graphCtx.beginPath();
+        graphCtx.moveTo(marginLeft, graphCanvas.height/2);
+        graphCtx.lineTo(graphCanvas.width - marginRight, graphCanvas.height/2);
+        graphCtx.stroke();
+        // Y axis
+        graphCtx.beginPath();
+        graphCtx.moveTo(marginLeft, marginTop);
+        graphCtx.lineTo(marginLeft, graphCanvas.height - marginBottom);
+        graphCtx.stroke();
+
+        // X ticks (time)
+        graphCtx.font = "13px Segoe UI";
+        graphCtx.fillStyle = "#444";
+        for (let t = Math.ceil(tMin); t <= tMin + timeWindow; t++) {
+            const x = marginLeft + (t - tMin) * xScale;
+            graphCtx.beginPath();
+            graphCtx.moveTo(x, graphCanvas.height/2 - 6);
+            graphCtx.lineTo(x, graphCanvas.height/2 + 6);
+            graphCtx.stroke();
+            graphCtx.fillText(t.toFixed(0), x - 8, graphCanvas.height/2 + 22);
+        }
+        // Y ticks (position/velocity)
+        for (let y = -2; y <= 2; y += 0.5) {
+            const yPx = graphCanvas.height/2 - y * yScale;
+            graphCtx.beginPath();
+            graphCtx.moveTo(marginLeft - 6, yPx);
+            graphCtx.lineTo(marginLeft + 6, yPx);
+            graphCtx.stroke();
+            if (Math.abs(y) < 0.01) continue; // skip 0 label
+            graphCtx.fillText(y.toFixed(1), marginLeft - 38, yPx + 5);
+        }
+        graphCtx.restore();
+
+        // Draw border
+        graphCtx.save();
+        graphCtx.strokeStyle = "#222";
+        graphCtx.lineWidth = 2;
+        graphCtx.strokeRect(marginLeft, marginTop, graphW, graphH);
+        graphCtx.restore();
+
+        // --- Plot position curve ---
+        graphCtx.save();
+        graphCtx.strokeStyle = '#3498db';
+        graphCtx.lineWidth = 2.5;
+        graphCtx.beginPath();
+        let first = true;
+        for (let i = 0; i < system.history.length; i++) {
+            const point = system.history[i];
+            if (point.time < tMin) continue;
+            const x = marginLeft + (point.time - tMin) * xScale;
+            const y = graphCanvas.height/2 - point.position * yScale;
+            if (first) { graphCtx.moveTo(x, y); first = false; }
+            else { graphCtx.lineTo(x, y); }
+        }
+        graphCtx.shadowColor = "#2980b9";
+        graphCtx.shadowBlur = 6;
+        graphCtx.stroke();
+        graphCtx.shadowBlur = 0;
+        graphCtx.restore();
+
+        // --- Plot velocity curve ---
+        graphCtx.save();
+        graphCtx.strokeStyle = '#e74c3c';
+        graphCtx.lineWidth = 2.5;
+        graphCtx.beginPath();
+        first = true;
+        for (let i = 0; i < system.history.length; i++) {
+            const point = system.history[i];
+            if (point.time < tMin) continue;
+            const x = marginLeft + (point.time - tMin) * xScale;
+            const y = graphCanvas.height/2 - point.velocity * yScale;
+            if (first) { graphCtx.moveTo(x, y); first = false; }
+            else { graphCtx.lineTo(x, y); }
+        }
+        graphCtx.shadowColor = "#c0392b";
+        graphCtx.shadowBlur = 6;
+        graphCtx.stroke();
+        graphCtx.shadowBlur = 0;
+        graphCtx.restore();
+
+        // --- Add axis labels and legend ---
+        graphCtx.save();
+        graphCtx.font = "bold 15px Segoe UI";
+        graphCtx.fillStyle = "#2980b9";
+        graphCtx.fillText("Position", graphCanvas.width - 120, 35);
+        graphCtx.fillStyle = "#e74c3c";
+        graphCtx.fillText("Velocity", graphCanvas.width - 120, 60);
+
+        // Y axis label
+        graphCtx.save();
+        graphCtx.translate(marginLeft - 45, graphCanvas.height/2 - 60);
+        graphCtx.rotate(-Math.PI/2);
+        graphCtx.fillStyle = "#444";
+        graphCtx.font = "bold 15px Segoe UI";
+        graphCtx.fillText("Position / Velocity (m, m/s)", 0, 0);
+        graphCtx.restore();
+
+        // X axis label
+        graphCtx.fillStyle = "#444";
+        graphCtx.font = "bold 15px Segoe UI";
+        graphCtx.fillText("Time (s)", graphCanvas.width/2 - 40, graphCanvas.height - 10);
+        graphCtx.restore();
+    }
+
+    function animate() {
+        if (!system.isRunning) return;
+        updateSystem(1/60);
+        drawSystem();
+        drawGraph();
+        requestAnimationFrame(animate);
+    }
+
+    // Event listeners
+    document.getElementById('startBtn').addEventListener('click', function() {
+        system.isRunning = true;
+        this.disabled = true;
+        document.getElementById('pauseBtn').disabled = false;
+        animate();
+    });
+
+    document.getElementById('pauseBtn').addEventListener('click', function() {
+        system.isRunning = false;
+        this.disabled = true;
+        document.getElementById('startBtn').disabled = false;
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function() {
+        system.isRunning = false;
+        system.x = parseFloat(document.getElementById('initialDisplacement').value);
+        system.v = 0;
+        system.time = 0;
+        system.history = [];
+        document.getElementById('startBtn').disabled = false;
+        document.getElementById('pauseBtn').disabled = true;
+        drawSystem();
+        drawGraph();
+    });
+
+    // Sync sliders and number inputs
+    function setupControl(sliderId, numberId, property) {
+        const slider = document.getElementById(sliderId);
+        const number = document.getElementById(numberId);
+
+        slider.addEventListener('input', function() {
+            number.value = this.value;
+            system[property] = parseFloat(this.value);
+            if (property === 'x') system.v = 0;
+            if (!system.isRunning) {
+                drawSystem();
+                drawGraph();
+            }
+        });
+
+        number.addEventListener('input', function() {
+            slider.value = this.value;
+            system[property] = parseFloat(this.value);
+            if (property === 'x') system.v = 0;
+            if (!system.isRunning) {
+                drawSystem();
+                drawGraph();
+            }
+        });
+    }
+
+    setupControl('mass', 'massNum', 'mass');
+    setupControl('springConstant', 'springConstantNum', 'k');
+    setupControl('damping', 'dampingNum', 'damping');
+    setupControl('initialDisplacement', 'initialDisplacementNum', 'x');
+
+    // Initial draw and resize
+    resizeCanvases();
+</script>
 </body>
 </html>
