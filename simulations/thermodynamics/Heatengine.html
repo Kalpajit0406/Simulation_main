@@ -129,6 +129,7 @@
             width: 220px;
             height: 8px;
             -webkit-appearance: none;
+            appearance: none;
             background: #ecf0f1;
             border-radius: 4px;
             outline: none;
@@ -308,6 +309,7 @@
             phase: 0, // 0-3 representing different phases of the cycle
             cycleCount: 0,
             workDone: 0,
+            heatInTotal: 0,
             isRunning: false,
             animationId: null,
             hotTemp: 600,
@@ -351,6 +353,9 @@
             document.getElementById('phase4')
         ];
         
+        // Track last changed temp control to enforce constraints smartly
+        let lastChangedTemp = null;
+
         // Event listeners
         startBtn.addEventListener('click', startEngine);
         pauseBtn.addEventListener('click', pauseEngine);
@@ -358,20 +363,24 @@
 
         // Slider and number input sync for hot reservoir
         hotTempSlider.addEventListener('input', function() {
+            lastChangedTemp = 'hot';
             hotTempNum.value = this.value;
             updateTemperatures();
         });
         hotTempNum.addEventListener('input', function() {
+            lastChangedTemp = 'hot';
             hotTempSlider.value = this.value;
             updateTemperatures();
         });
 
         // Slider and number input sync for cold reservoir
         coldTempSlider.addEventListener('input', function() {
+            lastChangedTemp = 'cold';
             coldTempNum.value = this.value;
             updateTemperatures();
         });
         coldTempNum.addEventListener('input', function() {
+            lastChangedTemp = 'cold';
             coldTempSlider.value = this.value;
             updateTemperatures();
         });
@@ -404,6 +413,7 @@
             engine.phase = 0;
             engine.cycleCount = 0;
             engine.workDone = 0;
+            engine.heatInTotal = 0;
             engine.pistonPosition = 0.5;
             engine.angle = 0;
             initGasParticles();
@@ -413,8 +423,42 @@
         }
         
         function updateTemperatures() {
-            engine.hotTemp = parseInt(hotTempSlider.value);
-            engine.coldTemp = parseInt(coldTempSlider.value);
+            const hotMin = parseInt(hotTempSlider.min);
+            const hotMax = parseInt(hotTempSlider.max);
+            const coldMin = parseInt(coldTempSlider.min);
+            const coldMax = parseInt(coldTempSlider.max);
+            const minGap = 10; // minimum temperature gap (K)
+
+            let hot = parseInt(hotTempSlider.value);
+            let cold = parseInt(coldTempSlider.value);
+
+            // Clamp within slider ranges
+            hot = Math.max(hotMin, Math.min(hotMax, isNaN(hot) ? engine.hotTemp : hot));
+            cold = Math.max(coldMin, Math.min(coldMax, isNaN(cold) ? engine.coldTemp : cold));
+
+            // Enforce cold < hot - minGap
+            if (lastChangedTemp === 'hot') {
+                if (hot <= cold + minGap) {
+                    cold = Math.max(coldMin, Math.min(hot - minGap, coldMax));
+                }
+            } else if (lastChangedTemp === 'cold') {
+                if (cold >= hot - minGap) {
+                    hot = Math.min(hotMax, Math.max(cold + minGap, hotMin));
+                }
+            } else {
+                if (hot <= cold + minGap) {
+                    hot = Math.min(hotMax, cold + minGap);
+                }
+            }
+
+            // Persist back to inputs
+            hotTempSlider.value = hot;
+            hotTempNum.value = hot;
+            coldTempSlider.value = cold;
+            coldTempNum.value = cold;
+
+            engine.hotTemp = hot;
+            engine.coldTemp = cold;
             hotTempValue.textContent = engine.hotTemp + " K";
             coldTempValue.textContent = engine.coldTemp + " K";
             updateDisplays();
@@ -436,14 +480,23 @@
             // Update engine state
             engine.angle += 0.02;
             if (engine.angle >= Math.PI * 2) {
-                engine.angle = 0;
+                engine.angle -= Math.PI * 2;
                 engine.cycleCount++;
-                
-                // Calculate work done and efficiency for this cycle
-                const heatIn = engine.hotTemp - engine.coldTemp;
-                const heatOut = engine.coldTemp;
-                const work = heatIn - heatOut;
+
+                // Approximate thermodynamic cycle: actual efficiency is a fraction of Carnot
+                const deltaT = Math.max(0, engine.hotTemp - engine.coldTemp);
+                const carnot = engine.hotTemp > 0 ? (1 - engine.coldTemp / engine.hotTemp) : 0;
+                const actualEfficiency = Math.max(0, Math.min(carnot, 0.7 * carnot));
+
+                // Scale heat input per cycle for visualization units
+                const heatIn = deltaT * 10; // arbitrary scaling factor for demo
+                const work = heatIn * actualEfficiency;
+                engine.heatInTotal += heatIn;
                 engine.workDone += work;
+
+                // Reset phase at cycle boundary
+                engine.phase = 0;
+                updatePhaseIndicator();
             }
             
             // Update piston position based on phase
@@ -469,10 +522,7 @@
                     }
                     break;
                 case 3: // Heating (isochoric)
-                    if (engine.angle > 2*Math.PI) {
-                        engine.phase = 0;
-                        updatePhaseIndicator();
-                    }
+                    // Transition to next cycle handled at angle wrap
                     break;
             }
             
@@ -749,9 +799,8 @@
             cycleCountDisplay.textContent = engine.cycleCount;
             workDoneDisplay.textContent = engine.workDone.toFixed(2) + " J";
             
-            // Calculate efficiency (work done / heat in)
-            const heatIn = engine.hotTemp - engine.coldTemp;
-            const efficiency = heatIn > 0 ? (engine.workDone / (engine.cycleCount * heatIn + 0.0001)) * 100 : 0;
+            // Calculate efficiency as cumulative (work done / total heat input)
+            const efficiency = engine.heatInTotal > 0 ? (engine.workDone / engine.heatInTotal) * 100 : 0;
             efficiencyDisplay.textContent = efficiency.toFixed(1) + "%";
             
             // Carnot efficiency
