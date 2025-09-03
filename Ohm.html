@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Ohm's Law Simulation</title>
+    <title>Professional Ohm's Law Simulation</title>
     <style>
         :root {
-            --primary-color: #007bff;
+            --primary-color: #0052cc;
             --secondary-color: #6c757d;
-            --background-color: #f8f9fa;
+            --background-color: #f4f5f7;
             --surface-color: #ffffff;
-            --text-color: #212529;
-            --border-color: #dee2e6;
+            --text-color: #172b4d;
+            --border-color: #dfe1e6;
+            --electron-color: #ffab00;
         }
 
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -27,108 +30,108 @@
 
         .simulation-container {
             background-color: var(--surface-color);
-            padding: 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            width: 900px;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 950px;
             max-width: 95%;
             box-sizing: border-box;
+            border: 1px solid var(--border-color);
         }
 
         h1 {
             text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 2rem;
-            font-size: 2.5em;
+            color: var(--text-color);
+            margin-bottom: 2.5rem;
+            font-size: 2.8em;
+            font-weight: 700;
         }
 
         .main-layout {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            grid-template-columns: 40% 60%;
+            gap: 3rem;
             align-items: center;
         }
 
         .controls {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            gap: 2.5rem;
         }
 
         .control-group {
-            background-color: #f1f3f5;
-            padding: 1.5rem;
-            border-radius: 10px;
+            background-color: var(--background-color);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
         }
 
         label {
-            font-size: 1.25em;
+            font-size: 1.3em;
             font-weight: 500;
             display: block;
             margin-bottom: 1rem;
+            color: #42526e;
+        }
+        
+        #voltage-value, #resistance-value {
+            font-weight: 700;
+            color: var(--primary-color);
         }
 
         input[type="range"] {
             width: 100%;
             -webkit-appearance: none;
             appearance: none;
-            height: 8px;
-            background: var(--border-color);
+            height: 10px;
+            background: #dfe1e6;
             border-radius: 5px;
             outline: none;
+            transition: background 0.3s;
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
-            width: 24px;
-            height: 24px;
-            background: var(--primary-color);
+            width: 26px;
+            height: 26px;
+            background: var(--surface-color);
+            border: 3px solid var(--primary-color);
             border-radius: 50%;
             cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            background: var(--primary-color);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: background 0.2s;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         input[type="range"]:hover::-webkit-slider-thumb {
-            background: #0056b3;
+            transform: scale(1.1);
+            box-shadow: 0 0 0 8px rgba(0, 82, 204, 0.2);
         }
-        
-        input[type="range"]:hover::-moz-range-thumb {
-            background: #0056b3;
-        }
-        
+
         #circuit-diagram {
-            background-color: #e9ecef;
-            border: 2px solid var(--border-color);
-            border-radius: 10px;
+            border: none;
             width: 100%;
+            height: 300px;
         }
 
         .equation-display {
             text-align: center;
-            font-size: 1.75em;
-            margin-top: 2rem;
-            padding: 1rem;
-            background: var(--primary-color);
+            font-size: 2em;
+            margin-top: 3rem;
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #0052cc, #0065ff);
             color: white;
-            border-radius: 10px;
+            border-radius: 12px;
             font-family: "Georgia", serif;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(0, 82, 204, 0.3);
         }
     </style>
 </head>
 <body>
 
 <div class="simulation-container">
-    <h1>Ohm's Law Simulation</h1>
+    <h1>Ohm's Law Interactive Simulation</h1>
     
     <div class="main-layout">
         <div class="controls">
@@ -138,11 +141,11 @@
             </div>
             <div class="control-group">
                 <label for="resistance-slider">Resistance (R): <span id="resistance-value">500</span> Ω</label>
-                <input type="range" id="resistance-slider" min="1" max="1000" value="500" step="1">
+                <input type="range" id="resistance-slider" min="10" max="1000" value="500" step="1">
             </div>
         </div>
         
-        <canvas id="circuit-diagram" width="400" height="250"></canvas>
+        <canvas id="circuit-diagram"></canvas>
     </div>
 
     <div class="equation-display">
@@ -160,14 +163,20 @@
         const canvas = document.getElementById('circuit-diagram');
         const ctx = canvas.getContext('2d');
 
+        const dpi = window.devicePixelRatio || 1;
+        canvas.width = canvas.offsetWidth * dpi;
+        canvas.height = canvas.offsetHeight * dpi;
+        ctx.scale(dpi, dpi);
+        
         let electrons = [];
         const path = [
-            { x: 350, y: 50 }, { x: 50, y: 50 }, 
-            { x: 50, y: 200 }, { x: 350, y: 200 } 
+            { x: 150, y: 250 }, { x: 450, y: 250 }, 
+            { x: 450, y: 50 }, { x: 50, y: 50 },
+            { x: 50, y: 250 }, {x: 150, y: 250}
         ];
-        const pathLength = 300 + 150 + 300; 
+        const pathLength = 300 + 200 + 400 + 200 + 100; // 1200
 
-        function updateSimulation() {
+        function updateSimulationState() {
             const voltage = parseFloat(voltageSlider.value);
             const resistance = parseFloat(resistanceSlider.value);
             const current = (resistance > 0) ? voltage / resistance : 0;
@@ -175,10 +184,16 @@
             voltageValueSpan.textContent = voltage.toFixed(1);
             resistanceValueSpan.textContent = resistance.toFixed(0);
             currentValueSpan.textContent = current.toFixed(4);
-
-            const speed = Math.max(0.2, Math.min(15, current * 150));
-            const numElectrons = Math.max(5, Math.min(60, Math.floor(current * 600)));
-
+            
+            return { voltage, resistance, current };
+        }
+        
+        function simulationLoop() {
+            const { voltage, resistance, current } = updateSimulationState();
+            
+            const speed = Math.max(0.2, Math.min(20, current * 200));
+            const numElectrons = Math.max(5, Math.min(70, Math.floor(current * 700)));
+            
             if (electrons.length !== numElectrons) {
                 createElectrons(numElectrons);
             }
@@ -186,9 +201,9 @@
             updateElectrons(speed);
             drawScene(voltage, resistance);
             
-            requestAnimationFrame(updateSimulation);
+            requestAnimationFrame(simulationLoop);
         }
-        
+
         function createElectrons(count) {
             electrons = [];
             for (let i = 0; i < count; i++) {
@@ -211,71 +226,92 @@
         }
 
         function drawWires() {
-            ctx.strokeStyle = '#343a40';
-            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#505f79';
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.beginPath();
             ctx.moveTo(path[0].x, path[0].y);
-            path.forEach((p, i) => {
-                if (i > 0) ctx.lineTo(p.x, p.y);
-            });
-            ctx.closePath();
+            for (let i = 1; i < path.length; i++) {
+                ctx.lineTo(path[i].x, path[i].y);
+            }
             ctx.stroke();
         }
 
         function drawBattery(voltage) {
-            const x = 50, y = 100;
-            ctx.lineWidth = 3;
+            const x = 100, y = 50;
+            ctx.lineWidth = 4;
+            // Negative terminal
             ctx.beginPath();
-            ctx.moveTo(x, y - 20); ctx.lineTo(x, y + 20);
-            ctx.moveTo(x + 15, y - 10); ctx.lineTo(x + 15, y + 10);
+            ctx.moveTo(x - 20, y);
+            ctx.lineTo(x + 20, y);
+            ctx.strokeStyle = '#42526e';
             ctx.stroke();
-            ctx.font = 'bold 16px Arial';
-            ctx.fillStyle = 'black';
+            
+            // Positive terminal
+            ctx.beginPath();
+            ctx.moveTo(x, y - 15);
+            ctx.lineTo(x, y + 15);
+            ctx.stroke();
+            
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = var(--text-color);
             ctx.textAlign = 'center';
-            ctx.fillText(`${voltage.toFixed(1)}V`, x + 7.5, y - 30);
+            ctx.fillText(`${voltage.toFixed(1)}V`, x, y - 30);
         }
 
         function drawResistor(resistance) {
-            const x = 200, y = 200;
-            ctx.lineWidth = 3;
+            const x = 300, y = 250;
+            ctx.strokeStyle = '#42526e';
+            ctx.lineWidth = 4;
             ctx.beginPath();
-            ctx.moveTo(x, y);
-            for (let i = 0; i < 6; i++) {
-                ctx.lineTo(x + (i * 15) + 7.5, y + (i % 2 === 0 ? -10 : 10));
+            ctx.moveTo(x - 50, y);
+            for (let i = 0; i < 7; i++) {
+                ctx.lineTo(x - 50 + (i * 15) + 7.5, y + (i % 2 === 0 ? -12 : 12));
             }
-            ctx.lineTo(x + 90, y);
+            ctx.lineTo(x + 60, y);
             ctx.stroke();
-            ctx.font = 'bold 16px Arial';
-            ctx.fillStyle = 'black';
-            ctx.fillText(`${resistance.toFixed(0)}Ω`, x + 45, y + 30);
+            
+            ctx.font = 'bold 18px Arial';
+            ctx.fillStyle = var(--text-color);
+            ctx.fillText(`${resistance.toFixed(0)}Ω`, x + 5, y + 35);
         }
         
         function drawElectrons() {
             electrons.forEach(e => {
                 const pos = getPositionOnPath(e.dist);
                 
-                // Don't draw inside components
-                if ((pos.y === 200 && pos.x > 195 && pos.x < 295) || (pos.y > 75 && pos.y < 125 && pos.x === 50)) {
+                // Skip drawing inside components
+                if ((pos.y === 50 && pos.x > 75 && pos.x < 125) || (pos.y === 250 && pos.x > 245 && pos.x < 365)) {
                     return;
                 }
                 
                 ctx.beginPath();
-                ctx.arc(pos.x, pos.y, 4, 0, 2 * Math.PI);
-                ctx.fillStyle = '#007bff';
+                ctx.arc(pos.x, pos.y, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = var(--electron-color);
+                ctx.shadowColor = 'rgba(255, 171, 0, 0.7)';
+                ctx.shadowBlur = 10;
                 ctx.fill();
+                ctx.shadowColor = 'transparent'; // Reset shadow
             });
         }
         
-        function getPositionOnPath(distance) {
-            if (distance < 300) return { x: 350 - distance, y: 50 };
-            if (distance < 450) return { x: 50, y: 50 + (distance - 300) };
-            return { x: 50 + (distance - 450), y: 200 };
+        function getPositionOnPath(d) {
+            if (d < 300) return { x: 150 + d, y: 250 };
+            d -= 300;
+            if (d < 200) return { x: 450, y: 250 - d };
+            d -= 200;
+            if (d < 400) return { x: 450 - d, y: 50 };
+            d -= 400;
+            if (d < 200) return { x: 50, y: 50 + d };
+            d -= 200;
+            return { x: 50 + d, y: 250 };
         }
 
-        voltageSlider.addEventListener('input', () => {});
-        resistanceSlider.addEventListener('input', () => {});
+        voltageSlider.addEventListener('input', updateSimulationState);
+        resistanceSlider.addEventListener('input', updateSimulationState);
 
-        updateSimulation();
+        simulationLoop();
     });
 </script>
 
