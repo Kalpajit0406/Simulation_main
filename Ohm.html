@@ -3,196 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ohm's Law Simulation</title>
+    <title>Advanced Ohm's Law Simulation</title>
     <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-color: #f8f9fa;
+            --surface-color: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            background-color: #f0f0f0;
+            background-color: var(--background-color);
+            color: var(--text-color);
         }
+
         .simulation-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            width: 800px;
+            background-color: var(--surface-color);
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            width: 900px;
+            max-width: 95%;
+            box-sizing: border-box;
         }
+
         h1 {
             text-align: center;
-            color: #333;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            font-size: 2.5em;
         }
-        .controls {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 20px;
-        }
-        .control-group {
-            display: flex;
-            flex-direction: column;
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
             align-items: center;
         }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .control-group {
+            background-color: #f1f3f5;
+            padding: 1.5rem;
+            border-radius: 10px;
+        }
+
         label {
-            font-size: 1.2em;
-            margin-bottom: 10px;
+            font-size: 1.25em;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 1rem;
         }
+
         input[type="range"] {
-            width: 250px;
-        }
-        #circuit-diagram {
-            background-color: #e9e9e9;
-            border: 1px solid #ccc;
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: var(--border-color);
             border-radius: 5px;
+            outline: none;
         }
-        .equation {
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        input[type="range"]:hover::-webkit-slider-thumb {
+            background: #0056b3;
+        }
+        
+        input[type="range"]:hover::-moz-range-thumb {
+            background: #0056b3;
+        }
+        
+        #circuit-diagram {
+            background-color: #e9ecef;
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            width: 100%;
+        }
+
+        .equation-display {
             text-align: center;
-            font-size: 2em;
-            margin-top: 20px;
-            font-family: "Times New Roman", Times, serif;
+            font-size: 1.75em;
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 10px;
+            font-family: "Georgia", serif;
         }
     </style>
 </head>
 <body>
 
 <div class="simulation-container">
-    <h1>Ohm's Law Interactive Simulation</h1>
+    <h1>Ohm's Law Simulation</h1>
     
-    <div class="controls">
-        <div class="control-group">
-            <label for="voltage-slider">Voltage (V) = <span id="voltage-value">9.0</span> V</label>
-            <input type="range" id="voltage-slider" min="0.1" max="20" value="9.0" step="0.1">
+    <div class="main-layout">
+        <div class="controls">
+            <div class="control-group">
+                <label for="voltage-slider">Voltage (V): <span id="voltage-value">9.0</span> V</label>
+                <input type="range" id="voltage-slider" min="0.1" max="20" value="9.0" step="0.1">
+            </div>
+            <div class="control-group">
+                <label for="resistance-slider">Resistance (R): <span id="resistance-value">500</span> Ω</label>
+                <input type="range" id="resistance-slider" min="1" max="1000" value="500" step="1">
+            </div>
         </div>
-        <div class="control-group">
-            <label for="resistance-slider">Resistance (R) = <span id="resistance-value">500</span> Ω</label>
-            <input type="range" id="resistance-slider" min="1" max="1000" value="500" step="1">
-        </div>
+        
+        <canvas id="circuit-diagram" width="400" height="250"></canvas>
     </div>
 
-    <canvas id="circuit-diagram" width="760" height="200"></canvas>
-
-    <div class="equation">
-        I = V / R = <span id="current-value">0.018</span> A
+    <div class="equation-display">
+        Current (I) = <span id="current-value">0.0180</span> A
     </div>
 </div>
 
 <script>
-    const voltageSlider = document.getElementById('voltage-slider');
-    const resistanceSlider = document.getElementById('resistance-slider');
-    const voltageValueSpan = document.getElementById('voltage-value');
-    const resistanceValueSpan = document.getElementById('resistance-value');
-    const currentValueSpan = document.getElementById('current-value');
-    const canvas = document.getElementById('circuit-diagram');
-    const ctx = canvas.getContext('2d');
+    document.addEventListener('DOMContentLoaded', () => {
+        const voltageSlider = document.getElementById('voltage-slider');
+        const resistanceSlider = document.getElementById('resistance-slider');
+        const voltageValueSpan = document.getElementById('voltage-value');
+        const resistanceValueSpan = document.getElementById('resistance-value');
+        const currentValueSpan = document.getElementById('current-value');
+        const canvas = document.getElementById('circuit-diagram');
+        const ctx = canvas.getContext('2d');
 
-    function calculateAndUpdate() {
-        const voltage = parseFloat(voltageSlider.value);
-        const resistance = parseFloat(resistanceSlider.value);
-        
-        let current = 0;
-        if (resistance > 0) {
-            current = voltage / resistance;
-        }
+        let electrons = [];
+        const path = [
+            { x: 350, y: 50 }, { x: 50, y: 50 }, 
+            { x: 50, y: 200 }, { x: 350, y: 200 } 
+        ];
+        const pathLength = 300 + 150 + 300; 
 
-        voltageValueSpan.textContent = voltage.toFixed(1);
-        resistanceValueSpan.textContent = resistance.toFixed(0);
-        currentValueSpan.textContent = current.toFixed(4);
+        function updateSimulation() {
+            const voltage = parseFloat(voltageSlider.value);
+            const resistance = parseFloat(resistanceSlider.value);
+            const current = (resistance > 0) ? voltage / resistance : 0;
 
-        drawCircuit(voltage, resistance, current);
-    }
+            voltageValueSpan.textContent = voltage.toFixed(1);
+            resistanceValueSpan.textContent = resistance.toFixed(0);
+            currentValueSpan.textContent = current.toFixed(4);
 
-    function drawCircuit(voltage, resistance, current) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const speed = Math.max(0.2, Math.min(15, current * 150));
+            const numElectrons = Math.max(5, Math.min(60, Math.floor(current * 600)));
 
-        // Wires
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(50, 100);
-        ctx.lineTo(150, 100);
-        ctx.moveTo(250, 100);
-        ctx.lineTo(450, 100);
-        ctx.moveTo(550, 100);
-        ctx.lineTo(650, 100);
-        ctx.lineTo(650, 50);
-        ctx.lineTo(100, 50);
-        ctx.lineTo(100, 100);
-        ctx.stroke();
-
-        // Battery (Voltage Source)
-        ctx.beginPath();
-        ctx.moveTo(150, 80);
-        ctx.lineTo(150, 120);
-        ctx.moveTo(165, 90);
-        ctx.lineTo(165, 110);
-        ctx.moveTo(180, 80);
-        ctx.lineTo(180, 120);
-        ctx.moveTo(195, 90);
-        ctx.lineTo(195, 110);
-        ctx.moveTo(210, 80);
-        ctx.lineTo(210, 120);
-        ctx.stroke();
-        ctx.font = '16px Arial';
-        ctx.fillStyle = 'black';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${voltage.toFixed(1)} V`, 200, 70);
-
-        // Resistor
-        ctx.beginPath();
-        ctx.moveTo(450, 100);
-        const R_segments = 8;
-        for (let i = 0; i < R_segments; i++) {
-            ctx.lineTo(450 + (i * 100 / R_segments) + (100/(R_segments*2)), 100 + (i % 2 === 0 ? -15 : 15));
-        }
-        ctx.lineTo(550, 100);
-        ctx.stroke();
-        ctx.fillText(`${resistance.toFixed(0)} Ω`, 500, 70);
-
-        // Current Flow (animated electrons)
-        const numElectrons = Math.max(5, Math.min(50, Math.floor(current * 500)));
-        const pathLength = 1100; 
-        const speed = Math.max(0.5, Math.min(10, current * 100));
-        
-        for (let i = 0; i < numElectrons; i++) {
-            const distance = ((Date.now() / 10 * speed) + (pathLength / numElectrons) * i) % pathLength;
-            let x, y;
-
-            if (distance < 550) { // Top wire
-                x = 650 - distance;
-                y = 50;
-            } else if (distance < 600) { // Left vertical wire
-                x = 100;
-                y = 50 + (distance - 550);
-            } else if (distance < 1100) { // Bottom wire
-                x = 100 + (distance - 600);
-                y = 100;
+            if (electrons.length !== numElectrons) {
+                createElectrons(numElectrons);
             }
             
-            if(x > 150 && x < 250 && y === 100) continue; // Skip battery
-            if(x > 450 && x < 550 && y === 100) continue; // Skip resistor
-
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = 'blue';
-            ctx.fill();
+            updateElectrons(speed);
+            drawScene(voltage, resistance);
+            
+            requestAnimationFrame(updateSimulation);
         }
-    }
-    
-    voltageSlider.addEventListener('input', calculateAndUpdate);
-    resistanceSlider.addEventListener('input', calculateAndUpdate);
-    
-    // Initial calculation and draw
-    calculateAndUpdate();
-    
-    function animate() {
-        calculateAndUpdate();
-        requestAnimationFrame(animate);
-    }
-    
-    animate();
+        
+        function createElectrons(count) {
+            electrons = [];
+            for (let i = 0; i < count; i++) {
+                electrons.push({ dist: (pathLength / count) * i });
+            }
+        }
+        
+        function updateElectrons(speed) {
+            electrons.forEach(e => {
+                e.dist = (e.dist + speed) % pathLength;
+            });
+        }
 
+        function drawScene(voltage, resistance) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawWires();
+            drawBattery(voltage);
+            drawResistor(resistance);
+            drawElectrons();
+        }
+
+        function drawWires() {
+            ctx.strokeStyle = '#343a40';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            path.forEach((p, i) => {
+                if (i > 0) ctx.lineTo(p.x, p.y);
+            });
+            ctx.closePath();
+            ctx.stroke();
+        }
+
+        function drawBattery(voltage) {
+            const x = 50, y = 100;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y - 20); ctx.lineTo(x, y + 20);
+            ctx.moveTo(x + 15, y - 10); ctx.lineTo(x + 15, y + 10);
+            ctx.stroke();
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = 'black';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${voltage.toFixed(1)}V`, x + 7.5, y - 30);
+        }
+
+        function drawResistor(resistance) {
+            const x = 200, y = 200;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            for (let i = 0; i < 6; i++) {
+                ctx.lineTo(x + (i * 15) + 7.5, y + (i % 2 === 0 ? -10 : 10));
+            }
+            ctx.lineTo(x + 90, y);
+            ctx.stroke();
+            ctx.font = 'bold 16px Arial';
+            ctx.fillStyle = 'black';
+            ctx.fillText(`${resistance.toFixed(0)}Ω`, x + 45, y + 30);
+        }
+        
+        function drawElectrons() {
+            electrons.forEach(e => {
+                const pos = getPositionOnPath(e.dist);
+                
+                // Don't draw inside components
+                if ((pos.y === 200 && pos.x > 195 && pos.x < 295) || (pos.y > 75 && pos.y < 125 && pos.x === 50)) {
+                    return;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(pos.x, pos.y, 4, 0, 2 * Math.PI);
+                ctx.fillStyle = '#007bff';
+                ctx.fill();
+            });
+        }
+        
+        function getPositionOnPath(distance) {
+            if (distance < 300) return { x: 350 - distance, y: 50 };
+            if (distance < 450) return { x: 50, y: 50 + (distance - 300) };
+            return { x: 50 + (distance - 450), y: 200 };
+        }
+
+        voltageSlider.addEventListener('input', () => {});
+        resistanceSlider.addEventListener('input', () => {});
+
+        updateSimulation();
+    });
 </script>
 
 </body>
